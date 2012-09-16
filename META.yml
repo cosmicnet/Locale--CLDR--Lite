@@ -1,0 +1,27 @@
+---
+abstract: 'Simple access to the Unicode Common Locale Data Repository'
+author:
+  - 'Lyle Hopkins, C<< <webmaster at cosmicperl.com> >>'
+  - 'Lyle Hopkins <webmaster@cosmicperl.com>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  Test::More: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 1.02'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Locale-CLDR-Lite
+no_index:
+  directory:
+    - inc
+    - share
+    - t
+requires:
+  File::ShareDir: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01_01
