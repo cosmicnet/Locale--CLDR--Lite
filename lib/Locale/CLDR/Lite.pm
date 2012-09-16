@@ -16,11 +16,11 @@ Locale::CLDR::Lite - Simple access to the Unicode Common Locale Data Repository
 
 =head1 VERSION
 
-Version 0.01_01
+Version 0.01_02
 
 =cut
 
-$VERSION = '0.01_01';
+$VERSION = '0.01_02';
 
 
 =head1 SYNOPSIS

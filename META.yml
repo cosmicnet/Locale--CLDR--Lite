@@ -5,7 +5,9 @@ author:
   - 'Lyle Hopkins <webmaster@cosmicperl.com>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
+  File::ShareDir: 0
   Test::More: 0
+  XML::Simple: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -24,4 +26,4 @@ requires:
   File::ShareDir: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.01_01
+version: 0.01_02

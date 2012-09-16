@@ -9,6 +9,7 @@ install_share;
 
 build_requires 'Test::More';
 
+requires 'XML::Simple' => 0;
 requires 'File::ShareDir' => 0;
 
 auto_install;

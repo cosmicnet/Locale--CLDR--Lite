@@ -2,3 +2,6 @@ Revision history for Locale-CLDR-Lite
 
 0.01_01    2012/08/30
         First development version limited get functionality
+0.01_02	   2012/09/16
+	Added XML::Simple dependency
+
