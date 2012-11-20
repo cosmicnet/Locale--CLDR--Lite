@@ -1,0 +1,7 @@
+*.bak
+blib
+Locale-CLDR-Lite-*.tar.gz
+Makefile
+Makefile.old
+MYMETA.yml
+pm_to_blib
