@@ -2,11 +2,10 @@ package Locale::CLDR::Lite;
 
 use strict;
 use warnings;
-use Carp;
-use File::ShareDir ':ALL';
-use vars qw( $AUTOLOAD $VERSION );
+use Carp();
+use File::ShareDir;
 
-require XML::Simple;
+use XML::Simple();
 my $xml = XML::Simple->new();
 
 
@@ -20,7 +19,7 @@ Version 0.01_02
 
 =cut
 
-$VERSION = '0.01_02';
+our $VERSION = '0.01_02';
 
 
 =head1 SYNOPSIS
@@ -40,7 +39,7 @@ managing the LDML inheritence model.
         # returns EEEE, d MMMM y
 
 
-=head1 METHODS
+=head1 CLASS METHODS
 
 =head2 new
 
@@ -50,50 +49,79 @@ Create a new accessor object from a given language tag.
 
 sub new {
     my ( $class, $lang ) = @_;
-    croak( 'You must pass a language tag' ) unless $lang;
+    my %_self=%{$class->_parse_locale($lang)};
+    my $self = bless \%_self,$class;
+    my $language_id = $self->{language_id};
 
-    ## Validate tag
-    croak( 'Language tags contain invalid characters' ) unless $lang =~ /^([a-z]+)(_[a-z]+)?(_[a-z]+)?$/i;
-
-    # Clean case
-    my $type = 'lang';
-    $lang = lc($1);
-    if ( $2 && $3 ) {
-        $lang .= lc $2 . uc $3;
-        $type = 'lang_script_region';
-    }
-    elsif ( $2 && length $2 > 3 ) {
-        $lang .= lc $2;
-        $type = 'lang_script';
-    }
-    elsif ( $2 ) {
-        $lang .= uc $2;
-        $type = 'lang_region';
-    }
-
-    my $self = {
-        lang => $lang,
-    };
     # We need to know where we are in order to get to the data files
     #( my $path = $INC{'Locale/CLDR/Lite.pm'} ) =~ s/\.pm$//;
-    my $path = dist_dir('Locale-CLDR-Lite');
+    my $path = File::ShareDir::dist_dir('Locale-CLDR-Lite');
     my @data_files;
-    while ( $lang ) {
-        if ( -e "$path/common/main/$lang.xml" ) {
-            push( @data_files, $lang );
+    do {
+        if ( -e "$path/common/main/$language_id.xml" ) {
+            push( @data_files, $language_id );
         }
         else {
-            warn( "No match for $lang, looking down inheritance" );
+            warn( "No match for $language_id, looking down inheritance" );
         }
-        $lang = '' unless $lang =~ s/_\w+$//;
-    }
-    croak( "Could not match language $_[1]" ) unless @data_files;
+    } while $language_id=~s/_[a-z\d]+\z//i;
+    Carp::croak( "Could not match language $lang" ) unless @data_files;
     $self->{files} = \@data_files;
     $self->{path}  = "$path/common/main";
 
     return bless $self, $class;
 }
 
+sub _parse_locale{
+    my($class,$locale_string) = @_;
+    defined $locale_string && $locale_string=~/\A[a-z\d]+(?:[-_][a-z\d]+)*\z/i
+      or Carp::croak( 'You must pass a Unicode locale identifier' );
+
+    my ($lang,@parts)=split /[-_]/,lc $locale_string;
+    my %locale = (
+      lang => $lang,
+    );
+    
+    if($lang eq 'root'){
+      # Root locale, no subtags allowed
+    }elsif($lang=~/\A[a-z]{2,3}\z/){
+      # Language based locale, various subtags allowed
+
+      if (@parts && length($parts[0]) == 4){
+	my $script = shift @parts;
+        $locale{script} = $script;
+	$lang.="_$script";
+      }
+
+      if(@parts && $parts[0]=~/\A(?:[a-z]{2}|\d{3})\z/){
+	my $region = uc shift @parts;
+        $locale{region} = $region;
+	$lang.="_$region";
+      }
+
+      while(@parts && $parts[0]=~/\A(?:[a-z]{5,8}|\d[a-z]{3})\z/){
+	my $variant = shift @parts;
+        push @{$locale{variants} ||= []},$variant;
+	$lang.="_$variant";
+      }
+    }
+    $locale{language_id}=$lang;
+    
+    if (@parts) {
+      if ($parts[0] eq 'u') { 
+        Carp::croak "Unicode locale extensions not currently supported";
+      } elsif($parts[0] eq 't') {
+        Carp::croak "Transformed extensions not currently supported";
+      } else {
+	my $bad=join '_',@parts;
+        Carp::croak "Unrecognised extensions ($bad) after language id ($lang)";
+      }
+    }
+
+    \%locale;
+}
+
+=head1 INSTANCE METHODS
 
 =head2 get
 
@@ -104,7 +132,7 @@ from a base node.
 
 sub get {
     my $self = shift;
-    croak( 'You can only call get on the base object' ) if ref $self->{node};
+    Carp::croak( 'You can only call get on the base object' ) if ref $self->{node};
     my %clone = %$self;
     $clone{node} = [];
     return bless \%clone, ref $self;
@@ -123,8 +151,8 @@ locale XML data structure.
 sub AUTOLOAD {
 	my $current = shift;
     my ( $attr, $value ) = @_;
-    croak( 'You must call the get method first' ) unless ref $current->{node};
-    $AUTOLOAD =~ m/([^:]*)$/;
+    Carp::croak( 'You must call the get method first' ) unless ref $current->{node};
+    our $AUTOLOAD =~ m/([^:]*)$/;
 
     # Based on the current node
     my $new = {
@@ -143,7 +171,8 @@ sub AUTOLOAD {
             $locale = $new->{cache}->{$file};
         }
         else {
-            open( my $INF, "$new->{path}/$file.xml" );
+            open( my $INF, '<', "$new->{path}/$file.xml" )
+	        or Carp::croak "Can't open $new->{path}/$file.xml: $!";
             $locale = $xml->XMLin( $INF );
             close( $INF );
             $new->{cache}->{$file} = $locale;
@@ -171,7 +200,7 @@ sub AUTOLOAD {
                     }#else
                 }#if
                 elsif ( ref $branch eq 'ARRAY' ) {
-                    croak( "Array of hashes at node '$node->{name}', but no attribute selector supplied" );
+                    Carp::croak( "Array of hashes at node '$node->{name}', but no attribute selector supplied" );
                 }
                 # Check for alias
                 if ( $branch->{alias} ) {

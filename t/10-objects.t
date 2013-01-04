@@ -1,8 +1,13 @@
-#!perl -T
+#!perl 
 
 use utf8;
 use Test::More;
 use Test::Exception;
+use Test::File::ShareDir
+  -share => {
+    -dist => { 'Locale-CLDR-Lite' => 'share' },
+  },
+;
 use strict;
 
 BEGIN {
@@ -12,7 +17,7 @@ BEGIN {
 diag( "Testing Locale::CLDR::Lite object creation" );
 
 my $locale = new Locale::CLDR::Lite('en_GB');
-is( ref $locale, 'Locale::CLDR::Lite', 'Locale object created' );
+isa_ok( $locale, 'Locale::CLDR::Lite', 'Locale object created' );
 
 throws_ok( sub { $locale->numbers }, qr/You must call the get method first/, 'get method requirement thrown ok' );
 
@@ -27,16 +32,16 @@ is( ref $numbers, 'Locale::CLDR::Lite', 'Locale object returned' );
 is( $numbers->{node}->[-1]->{name}, 'numbers', 'Object node is numbers' );
 
 # Is get still at get?
-is( ref $get, 'Locale::CLDR::Lite', 'Locale object returned' );
+isa_ok( $get, 'Locale::CLDR::Lite', 'Locale object returned' );
 is_deeply( $get->{node}, [], 'Object node is empty' );
 
 # To symbols
 my $symbols = $numbers->symbols;
-is( ref $symbols, 'Locale::CLDR::Lite', 'Locale object returned' );
+isa_ok( $symbols, 'Locale::CLDR::Lite', 'Locale object returned' );
 is( $symbols->{node}->[-1]->{name}, 'symbols', 'Object node is symbols' );
 
 # Is numbers still at numbers?
-is( ref $numbers, 'Locale::CLDR::Lite', 'Locale object returned' );
+isa_ok( $numbers, 'Locale::CLDR::Lite', 'Locale object returned' );
 is( $numbers->{node}->[-1]->{name}, 'numbers', 'Object node is numbers' );
 
 # Can we get a value
@@ -48,7 +53,7 @@ diag( "Testing attribute selector" );
 
 # Test attribute selector
 my $calendar = $get->dates->calendars->calendar(type => 'gregorian');
-is( ref $calendar, 'Locale::CLDR::Lite', 'Locale object returned' );
+isa_ok( $calendar, 'Locale::CLDR::Lite', 'Locale object returned' );
 
 my $datepattern = $get->dates->calendars->calendar(type => 'gregorian')->
         dateFormats->dateFormatLength(type => 'full')->dateFormat->pattern();
@@ -59,7 +64,7 @@ diag( "Testing alias redirect" );
 
 # Test alias redirect
 my $currency = $numbers->currencyFormats(numberSystem => 'arab');
-is( ref $currency, 'Locale::CLDR::Lite', 'Locale object returned' );
+isa_ok( $currency, 'Locale::CLDR::Lite', 'Locale object returned' );
 
 
 done_testing();
